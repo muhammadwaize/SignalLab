@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "macros.html" import table %}
+{% block title %}{{ name }} · Data tables{% endblock %}
+{% block content %}
+<p><a href="/tables">← All tables</a></p>
+<h1>{{ name }}</h1>
+<form method="get" class="filter">
+  {% if has_run %}
+  <label>Show run
+    <select name="run_id" onchange="this.form.submit()">
+      <option value="">All runs</option>
+      {% for r in runs %}<option value="{{ r.id }}" {% if r.id == run_id %}selected{% endif %}>#{{ r.id }} · {{ r.brand }}</option>{% endfor %}
+    </select></label>
+  {% endif %}
+  <a class="btn ghost" href="/tables/{{ name }}/csv{% if run_id %}?run_id={{ run_id }}{% endif %}">⬇ Download CSV</a>
+</form>
+<p class="muted">{{ total | num }} rows · page {{ page_no }} of {{ pages }}</p>
+{% set cols = [] %}{% for c in columns %}{% set _ = cols.append((c, c)) %}{% endfor %}
+{{ table(rows, cols) }}
+<p class="pager">
+  {% if page_no > 1 %}<a class="btn ghost" href="/tables/{{ name }}?page_no={{ page_no - 1 }}{% if run_id %}&run_id={{ run_id }}{% endif %}">← Previous</a>{% endif %}
+  {% if page_no < pages %}<a class="btn ghost" href="/tables/{{ name }}?page_no={{ page_no + 1 }}{% if run_id %}&run_id={{ run_id }}{% endif %}">Next →</a>{% endif %}
+</p>
+{% endblock %}

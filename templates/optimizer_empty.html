@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Ad optimizer · Brand Intelligence{% endblock %}
+{% block content %}
+<h1>Step 2 · Ad optimizer</h1>
+<p class="muted">Complete a sentiment analysis first. The optimizer uses the comments and videos saved from that analysis.</p>
+<div class="card empty-state"><h3>No completed analyses yet</h3><p>Once a sentiment analysis finishes, its results will be available here.</p><a class="btn" href="/analysis/new">Start sentiment analysis</a></div>
+{% if runs %}<h2>Recent analyses</h2><div class="tablebox"><table><thead><tr><th>Brand</th><th>Status</th><th></th></tr></thead><tbody>{% for r in runs %}<tr><td>{{ r.brand }}</td><td>{{ r.status }}</td><td><a href="/runs/{{ r.id }}">Open</a></td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% endblock %}

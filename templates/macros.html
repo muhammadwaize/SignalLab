@@ -1,0 +1,15 @@
+{# A table whose text wraps onto the next line. rows = list of dicts, cols = list of (key, heading). #}
+{% macro table(rows, cols, max_height=None) %}
+<div class="tablebox"{% if max_height %} style="max-height: {{ max_height }}px"{% endif %}>
+  <table class="wrap">
+    <thead><tr>{% for key, heading in cols %}<th>{{ heading }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for row in rows %}
+      <tr>{% for key, heading in cols %}{% set v = row[key] %}<td class="{{ 'n' if v is number and v is not boolean }}">{{ v | num }}</td>{% endfor %}</tr>
+    {% else %}
+      <tr><td colspan="{{ cols | length }}" class="empty">No rows yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}

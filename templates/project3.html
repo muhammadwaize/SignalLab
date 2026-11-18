@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Project 3 · {{ run.brand }}{% endblock %}
+{% block content %}
+<p class="muted"><a href="/">Home</a> / Step 3</p>
+<h1>Audience clusters & unusual posts</h1>
+<p class="muted">{{ run.brand }} · Analysis run #{{ run.id }} · Project 3 uses the saved Table A (videos/posts) and Table B (comments).</p>
+{% if runs|length > 1 %}
+<form method="get" class="filter"><label>Analysis run <select onchange="location.href='/project3/'+this.value">{% for r in runs %}<option value="{{ r.id }}" {% if r.id == run.id %}selected{% endif %}>#{{ r.id }} · {{ r.brand }} · {{ r.created_at }}</option>{% endfor %}</select></label></form>
+{% endif %}
+{% if message %}<p class="success-note">{{ message }}</p>{% endif %}
+{% if error %}<p class="notice">{{ error }}</p>{% endif %}
+<div class="cards metrics">
+  <div class="metric"><span>Comments available</span><b>{{ comment_count|num }}</b></div>
+  <div class="metric"><span>Posts available</span><b>{{ video_count|num }}</b></div>
+  <div class="metric"><span>Comments clustered</span><b>{{ clustered_count|num }}</b></div>
+  <div class="metric"><span>Unusual posts flagged</span><b>{{ unusual|length|num }}</b></div>
+</div>
+<div class="card">
+  <h2>Run Project 3 analysis</h2>
+  <p class="muted">Clustering groups similar comment patterns using sentiment, purchase signals, engagement, language, topic and comment type. Unusual-post detection checks for statistically extreme post metrics and comment signals.</p>
+  <form method="post" action="/project3/{{ run.id }}/run" class="form-grid">
+    <label>Number of clusters <input type="number" name="n_clusters" min="2" max="8" value="4"></label>
+    <button class="btn" type="submit">Run / refresh Project 3</button>
+  </form>
+</div>
+<h2>Audience clusters</h2>
+<p class="muted">These are clusters of comment patterns, not verified groups of individual people. The current database does not store unique commenter identities.</p>
+{% if profiles %}
+<div class="grid3">
+{% for c in profiles %}
+  <div class="card cluster-card">
+    <p class="muted">Cluster {{ c.cluster_no }} · {{ c.comment_count|num }} comments</p>
+    <h3>{{ c.label }}</h3>
+    <p>{{ c.description }}</p>
+    <div class="cluster-stats"><span>Positive <b>{{ c.positive_pct }}%</b></span><span>Negative <b>{{ c.negative_pct }}%</b></span><span>Purchase claims <b>{{ c.purchase_pct }}%</b></span><span>Buying intent <b>{{ c.intent_pct }}%</b></span></div>
+    <p class="muted small-line">Avg sentiment: {{ c.avg_sentiment }} · Main topic: {{ c.top_topic }} · Language: {{ c.top_language }} · Comment type: {{ c.top_comment_type }}</p>
+  </div>
+{% endfor %}
+</div>
+<p><a class="btn ghost" href="/project3/{{ run.id }}/csv?kind=clusters">Download cluster profiles CSV</a> <a class="btn ghost" href="/project3/{{ run.id }}/csv?kind=assignments">Download comment assignments CSV</a></p>
+{% else %}
+<div class="card"><p class="muted">Audience clusters have not been generated yet. At least 4 comments are required.</p></div>
+{% endif %}
+<h2>Unusual posts</h2>
+<p class="muted">A post is flagged only when one or more available metrics cross a robust statistical outlier threshold. This identifies unusual values, not necessarily bad or fraudulent content.</p>
+{% if unusual %}
+<div class="tablebox"><table class="wrap"><thead><tr><th>Post</th><th>Views</th><th>Likes</th><th>Comments</th><th>Engagement %</th><th>Avg sentiment</th><th>Buying intent %</th><th>Signals</th></tr></thead><tbody>
+{% for p in unusual %}<tr><td>{% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener">{{ p.title }}</a>{% else %}{{ p.title }}{% endif %}<br><small>{{ p.channel }} · {{ p.data_origin }}</small></td><td>{{ p.views|num }}</td><td>{{ p.likes|num }}</td><td>{{ p.comments_count|num }}</td><td>{{ p.engagement_rate_pct if p.engagement_rate_pct is not none else '—' }}</td><td>{{ p.avg_comment_sentiment if p.avg_comment_sentiment is not none else '—' }}</td><td>{{ p.purchase_intent_pct if p.purchase_intent_pct is not none else '—' }}</td><td>{{ p.reasons }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p><a class="btn ghost" href="/project3/{{ run.id }}/csv?kind=posts">Download unusual posts CSV</a></p>
+{% elif video_count < 4 %}
+<div class="card"><p class="muted">At least 4 analysed posts are required to compare post metrics.</p></div>
+{% elif has_results %}
+<div class="card"><p class="muted">No posts crossed the outlier thresholds. This is a valid result; the detector will not force a flag.</p></div>
+{% else %}
+<div class="card"><p class="muted">Run Project 3 to check posts for unusual metrics.</p></div>
+{% endif %}
+<div class="card nextsteps"><h3>Saved in the database</h3><p class="muted">Cluster profiles, comment-to-cluster assignments and unusual-post flags are saved for this analysis run.</p><a class="btn ghost" href="/tables/audience_clusters?run_id={{ run.id }}">Cluster table</a> <a class="btn ghost" href="/tables/cluster_assignments?run_id={{ run.id }}">Assignments table</a> <a class="btn ghost" href="/tables/unusual_posts?run_id={{ run.id }}">Unusual posts table</a></div>
+{% endblock %}

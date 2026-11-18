@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% from "macros.html" import table %}
+{% block title %}{{ run.brand }} · Analysis {{ run.id }}{% endblock %}
+{% block content %}
+<p class="toprow"><a href="/">← All analyses</a>
+  <form method="post" action="/runs/{{ run.id }}/delete" onsubmit="return confirm('Delete this analysis and all its saved rows?')"><button class="linkbtn" type="submit">Delete this analysis</button></form></p>
+<h1>{{ run.brand }} <span class="pill {{ run.status }}">{{ run.status }}</span></h1>
+<p class="muted">Run #{{ run.id }}{% if run.niche %} · {{ run.niche }}{% endif %} · started {{ run.created_at }} UTC ·
+  up to {{ run.max_videos }} videos, {{ run.per_video }} comments per video, {{ run.total_comments | num }} comments in total{% if run.region %} · region: {{ run.region }}{% endif %}{% if run.exclude_words %} · excluding: {{ run.exclude_words }}{% endif %}</p>
+
+{% if run.status in ('queued', 'running') %}
+<div class="card">
+  <h3 id="msg">{{ run.message }}</h3>
+  <div class="progress"><span id="bar" style="width: {{ (run.progress * 100) | round | int }}%"></span></div>
+  <p class="muted">This can take a minute or two. Keep this page open; it updates by itself.</p>
+</div>
+<script>
+  (function () {
+    var url = "/api/runs/{{ run.id }}/status";
+    function poll() {
+      fetch(url).then(function (r) { return r.json(); }).then(function (s) {
+        document.getElementById("msg").textContent = s.message || "Working...";
+        document.getElementById("bar").style.width = Math.round((s.progress || 0) * 100) + "%";
+        if (s.status === "done" || s.status === "failed") { location.reload(); }
+        else { setTimeout(poll, 2000); }
+      }).catch(function () { setTimeout(poll, 4000); });
+    }
+    setTimeout(poll, 1500);
+  })();
+</script>
+
+{% elif run.status == 'failed' %}
+<div class="alert"><b>This run failed.</b> {{ run.error }}</div>
+<p><a class="btn" href="/analysis/new">Start a new analysis</a></p>
+
+{% else %}
+{% if notes %}<ul class="notes">{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul>{% endif %}
+
+<div class="cards">
+  <div class="metric"><span>Comments</span><b>{{ metrics.comments | num }}</b></div>
+  <div class="metric"><span>Videos</span><b>{{ metrics.videos | num }}</b></div>
+  <div class="metric good"><span>Positive</span><b>{{ metrics.positive }}%</b></div>
+  <div class="metric bad"><span>Negative</span><b>{{ metrics.negative }}%</b></div>
+  <div class="metric"><span>Say they bought it</span><b>{{ metrics.bought | num }}</b></div>
+  <div class="metric"><span>Want to buy</span><b>{{ metrics.want | num }}</b></div>
+</div>
+
+<h2>What kinds of comments are there?</h2>
+<div class="card bars">
+  {% for t in types %}
+  <div class="barrow"><span class="lab">{{ t.comment_type }}</span>
+    <div class="bar"><span style="width: {{ t.bar }}%"></span></div>
+    <span class="val">{{ t.comments | num }} <small>({{ t['share_%'] }}%)</small></span></div>
+  {% endfor %}
+</div>
+
+<h2>What do people like or dislike?</h2>
+{% if topics %}
+{{ table(topics, [('topic','Topic'),('comments','Comments'),('positive_%','Positive %'),('negative_%','Negative %'),('avg_sentiment','Avg sentiment'),('verdict','Verdict')]) }}
+{% else %}<p class="muted">No common topics (price, quality, delivery...) were found in these comments.</p>{% endif %}
+
+<div class="grid2">
+  <div><h2>Most-liked positive comments</h2>
+    {% for c in top_positive %}<div class="quote good"><p>{{ c.comment }}</p><small>👍 {{ c.likes | num }} · {{ c.video_title }}</small></div>{% else %}<p class="muted">None.</p>{% endfor %}</div>
+  <div><h2>Most-liked negative comments</h2>
+    {% for c in top_negative %}<div class="quote bad"><p>{{ c.comment }}</p><small>👍 {{ c.likes | num }} · {{ c.video_title }}</small></div>{% else %}<p class="muted">None.</p>{% endfor %}</div>
+</div>
+
+<h2>The videos (posts) that were analysed</h2>
+{{ table(videos, [('title','Title'),('channel','Channel'),('content_type','Content type'),('campaign','Campaign'),('views','Views'),('likes','Likes'),('comments_count','Comments'),('comments_scraped','Read'),('days_since_post','Days since post')], 420) }}
+
+<div class="card nextsteps">
+  <h3>Saved in the tables</h3>
+  <p class="muted">All of this is stored, so the next steps can use it.</p>
+  <p><a class="btn ghost" href="/tables/comments?run_id={{ run.id }}">Comments table</a>
+     <a class="btn ghost" href="/tables/videos?run_id={{ run.id }}">Videos table</a>
+     <a class="btn ghost" href="/tables/comments/csv?run_id={{ run.id }}">⬇ Comments CSV</a>
+     <a class="btn" href="/optimizer/{{ run.id }}">Step 2 · Open ad optimizer →</a>
+     <a class="btn" href="/project3/{{ run.id }}">Step 3 · Audience clusters →</a></p>
+</div>
+{% endif %}
+{% endblock %}

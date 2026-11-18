@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "macros.html" import table %}
+{% block content %}
+<h1>Your analyses</h1>
+<p class="muted">Every sentiment analysis you run is saved here. Open one to see its results, or look at the raw tables.</p>
+<p><a class="btn" href="/analysis/new">＋ New sentiment analysis</a> <a class="btn ghost" href="/tables">Browse data tables</a></p>
+{% if runs %}
+<div class="tablebox"><table class="wrap">
+  <thead><tr><th>#</th><th>Brand</th><th>Niche</th><th>Status</th><th>Videos</th><th>Comments</th><th>Started (UTC)</th><th></th></tr></thead>
+  <tbody>
+  {% for r in runs %}
+    <tr>
+      <td class="n">{{ r.id }}</td><td>{{ r.brand }}</td><td>{{ r.niche }}</td>
+      <td><span class="pill {{ r.status }}">{{ r.status }}</span></td>
+      <td class="n">{{ r.n_videos | num }}</td><td class="n">{{ r.n_comments | num }}</td>
+      <td>{{ r.created_at }}</td><td class="actions"><a href="/runs/{{ r.id }}">Open →</a>
+        <form method="post" action="/runs/{{ r.id }}/delete" onsubmit="return confirm('Delete this analysis and all its saved rows?')"><button class="linkbtn" type="submit">Delete</button></form></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="card empty-state"><h3>Nothing here yet</h3><p>Start with Step 1: enter a brand name and the website finds videos, reads their comments and analyses them.</p>
+<a class="btn" href="/analysis/new">Start the first analysis</a></div>
+{% endif %}
+{% endblock %}

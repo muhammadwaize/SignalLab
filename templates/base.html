@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Brand Intelligence{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="mark" href="/">🎯 Brand Intelligence</a>
+  <nav class="steps">
+    <a class="{{ 'on' if active == 'sentiment' }}" href="/analysis/new"><b>1</b> Sentiment analysis</a>
+    <a class="{{ 'on' if active == 'optimizer' }}" href="/optimizer"><b>2</b> Ad optimizer</a>
+    <a class="{{ 'on' if active == 'clusters' }}" href="/project3"><b>3</b> Audience clusters</a>
+    <a class="{{ 'on' if active == 'tables' }}" href="/tables">Data tables</a>
+  </nav>
+</header>
+<main>{% block content %}{% endblock %}</main>
+</body>
+</html>

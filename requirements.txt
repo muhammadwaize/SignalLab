@@ -1,0 +1,14 @@
+streamlit
+requests
+pandas
+matplotlib
+openpyxl
+vaderSentiment
+youtube-comment-downloader
+yt-dlp
+google-genai
+fastapi
+uvicorn
+jinja2
+python-multipart
+scikit-learn

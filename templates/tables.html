@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Data tables · Brand Intelligence{% endblock %}
+{% block content %}
+<h1>Data tables</h1>
+<p class="muted">Everything the website stores. Open a table to browse it, or download it as a CSV file (opens in Excel).</p>
+<div class="cards tablecards">
+  {% for t in tables %}
+  <div class="card">
+    <h3>{{ t.name }}</h3>
+    <p class="big">{{ t.rows | num }} <small>rows</small></p>
+    <p class="muted cols">{{ t.columns | join(', ') }}</p>
+    <p><a class="btn ghost" href="/tables/{{ t.name }}">Browse</a> <a class="btn ghost" href="/tables/{{ t.name }}/csv">⬇ CSV</a></p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

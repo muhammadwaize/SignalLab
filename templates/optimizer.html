@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Ad optimizer · {{ run.brand }}{% endblock %}
+{% block content %}
+<p class="muted"><a href="/">Home</a> / Step 2</p>
+<h1>Ad optimizer · {{ run.brand }}</h1>
+<p class="muted">Recommendations are inferred from comments collected in sentiment analysis run #{{ run.id }}. They are not verified traffic, sales attribution, or advertising conversion data.</p>
+{% if runs|length > 1 %}<form method="get" class="filter"><label>Analysis run <select onchange="location.href='/optimizer/'+this.value">{% for r in runs %}<option value="{{ r.id }}" {% if r.id == run.id %}selected{% endif %}>#{{ r.id }} · {{ r.brand }} · {{ r.created_at }}</option>{% endfor %}</select></label></form>{% endif %}
+<form method="post" action="/optimizer/{{ run.id }}" class="card form-grid">
+  <label>Advertising budget (PKR)<input type="number" name="budget_rs" min="10000" max="1000000000" step="1000" value="{{ budget }}" required></label>
+  <label>Minimum allocation per option (%)<input type="number" name="min_share_pct" min="0" max="15" step="0.5" value="{{ min_share_pct }}" required></label>
+  <button class="btn" type="submit">Save budget & recalculate</button>
+</form>
+<h2>Evidence coverage</h2>
+<div class="cards metrics">
+  <div class="card"><p class="muted">Comments analysed</p><p class="big">{{ coverage.comments|num }}</p></div>
+  <div class="card"><p class="muted">Comments naming a source or discovery path</p><p class="big">{{ coverage.named_any|num }} <small>({{ coverage['named_any_%'] }}%)</small></p></div>
+  <div class="card"><p class="muted">Say where they found the brand</p><p class="big">{{ coverage.found_on_platform|num }}</p></div>
+  <div class="card"><p class="muted">Say where they bought it</p><p class="big">{{ coverage.bought_from_named|num }}</p></div>
+</div>
+{% if coverage['named_any_%'] < 5 %}<p class="notice">Fewer than 5% of comments name a source. Treat source-based budget recommendations as weak evidence.</p>{% endif %}
+<h2>Budget allocation by mentioned source</h2>
+<p class="muted">The score prioritizes weighted purchases, then buying intent, then reach, with a positive-sentiment multiplier. A minimum share is reserved for each eligible source.</p>
+{% if source_alloc %}
+<div class="tablebox"><table><thead><tr><th>Source</th><th>Mentions</th><th>Purchases</th><th>Intent</th><th>Show-offs</th><th>Avg. sentiment</th><th>Share</th><th>Suggested PKR</th></tr></thead><tbody>{% for r in source_alloc %}<tr><td>{{ r.source }}</td><td>{{ r.mentions|num }}</td><td>{{ r.purchases|num }}</td><td>{{ r.intents|num }}</td><td>{{ r.show_offs|num }}</td><td>{{ r.avg_sentiment }}</td><td>{{ r['share_%'] }}%</td><td>{{ r.budget_rs|num }}</td></tr>{% endfor %}</tbody></table></div>
+<p><a class="btn ghost" href="/optimizer/{{ run.id }}/csv?kind=sources">Download source allocation CSV</a></p>
+{% else %}<div class="card"><p>No comments explicitly named a platform or source. The optimizer will not invent source allocations.</p></div>{% endif %}
+<h2>Budget allocation by video</h2>
+<p class="muted">This identifies which analysed videos have stronger purchase, intent and reach signals in their comments. It is not a paid-media performance forecast.</p>
+{% if video_alloc %}<div class="tablebox"><table><thead><tr><th>Video</th><th>Channel</th><th>Views</th><th>Likes</th><th>Purchases</th><th>Intent</th><th>Avg. sentiment</th><th>Share</th><th>Suggested PKR</th></tr></thead><tbody>{% for r in video_alloc %}<tr><td>{% if r.title %}<a href="https://www.youtube.com/watch?v={{ r.video_id }}" target="_blank" rel="noopener">{{ r.title }}</a>{% else %}{{ r.video_id }}{% endif %}</td><td>{{ r.channel or '' }}</td><td>{{ r.views|num }}</td><td>{{ r.likes|num }}</td><td>{{ r.purchases|num }}</td><td>{{ r.intents|num }}</td><td>{{ r.avg_sentiment }}</td><td>{{ r['share_%'] }}%</td><td>{{ r.budget_rs|num }}</td></tr>{% endfor %}</tbody></table></div><p><a class="btn ghost" href="/optimizer/{{ run.id }}/csv?kind=videos">Download video allocation CSV</a></p>
+{% else %}<div class="card"><p>No video-level comment evidence is available for this run.</p></div>{% endif %}
+<div class="two-col">
+<section><h2>How people found the brand</h2>{% if discovery %}<div class="tablebox"><table><thead><tr><th>Discovery path</th><th>Comments</th><th>Purchases</th><th>Avg. sentiment</th></tr></thead><tbody>{% for r in discovery %}<tr><td>{{ r.how_they_found_it }}</td><td>{{ r.comments|num }}</td><td>{{ r.purchases|num }}</td><td>{{ r.avg_sentiment }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">No discovery paths were explicitly mentioned.</p>{% endif %}</section>
+<section><h2>Where people bought it</h2>{% if bought %}<div class="tablebox"><table><thead><tr><th>Source</th><th>Mentions</th><th>Purchases</th><th>Avg. sentiment</th></tr></thead><tbody>{% for r in bought %}<tr><td>{{ r.bought_from }}</td><td>{{ r.mentions|num }}</td><td>{{ r.purchases|num }}</td><td>{{ r.avg_sentiment }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">No buyer named where they purchased the product.</p>{% endif %}</section>
+</div>
+<h2>Audience clues</h2>
+<div class="two-col"><section><h3>Language</h3>{% if languages %}<div class="tablebox"><table><thead><tr><th>Language</th><th>Comments</th><th>Share</th><th>Purchases</th></tr></thead><tbody>{% for r in languages %}<tr><td>{{ r.language }}</td><td>{{ r.comments|num }}</td><td>{{ r['share_%'] }}%</td><td>{{ r.purchases|num }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">No language summary.</p>{% endif %}</section>
+<section><h3>Locations mentioned</h3>{% if locations %}<div class="tablebox"><table><thead><tr><th>Location</th><th>Mentions</th><th>Purchases</th><th>Intent</th></tr></thead><tbody>{% for r in locations %}<tr><td>{{ r.location }}</td><td>{{ r.mentions|num }}</td><td>{{ r.purchases|num }}</td><td>{{ r.intents|num }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted">No locations were explicitly mentioned.</p>{% endif %}</section></div>
+<p class="notice">Interpretation note: the original keyword-based comment scanner can miss sarcasm, negation, ambiguous source mentions and comments that do not name a source. These allocations are exploratory recommendations, not a substitute for ad-platform analytics or controlled campaign tests.</p>
+{% endblock %}

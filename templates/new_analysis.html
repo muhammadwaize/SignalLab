@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}New analysis · Brand Intelligence{% endblock %}
+{% block content %}
+<h1>Step 1 · Sentiment analysis</h1>
+<p class="muted">Enter a brand. The website finds YouTube videos about it, reads their comments, and saves the results in tables.</p>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<form method="post" action="/analysis" class="card form">
+  <div class="grid2">
+    <label>Brand name<input name="brand" value="{{ form.brand }}" placeholder="e.g. Khaadi, Sapphire, Gul Ahmed" required></label>
+    <label>Niche (optional)<input name="niche" value="{{ form.niche }}" placeholder="e.g. women's lawn suits"></label>
+  </div>
+  <div class="grid3">
+    <label>Max videos<input type="number" name="max_videos" min="1" max="50" value="{{ form.max_videos }}"></label>
+    <label>Max comments per video<input type="number" name="per_video" min="20" max="3000" step="20" value="{{ form.per_video }}"></label>
+    <label>Total comments (all videos)<input type="number" name="total_comments" min="50" max="50000" step="50" value="{{ form.total_comments }}"></label>
+  </div>
+  <div class="grid2">
+    <label>Region or extra search words (optional)<input name="region" value="{{ form.region }}" placeholder="e.g. Pakistan"></label>
+    <label>Leave out videos containing these words (optional)<input name="exclude_words" value="{{ form.exclude_words }}" placeholder="e.g. urban, usa (separate with commas)"></label>
+  </div>
+  <p class="muted hint">Tip: for short or common names, add the region and list other brands that share the name.
+  For example, "Outfitters" in Pakistan also finds videos about the US brand Urban Outfitters, so exclude "urban".</p>
+  <label class="check"><input type="checkbox" name="strict" {% if form.strict %}checked{% endif %}> Only use videos that mention the brand name (keeps the analysis about this brand only)</label>
+  <label>Comment order
+    <select name="order"><option value="popular" {% if form.order == 'popular' %}selected{% endif %}>Most popular</option>
+    <option value="recent" {% if form.order == 'recent' %}selected{% endif %}>Newest</option></select></label>
+  <label>Optional: add specific video links (one per line)<textarea name="extra_links" rows="3">{{ form.extra_links }}</textarea></label>
+  <button class="btn" type="submit">Start analysis</button>
+</form>
+{% endblock %}
