@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Brand Comment Intelligence & Ad Optimizer
 
 A Streamlit application that collects YouTube comments about a brand and turns them into an overview of customer sentiment, common topics, buying signals, brand discovery sources, and suggested advertising budget allocation.
@@ -312,3 +313,7 @@ The Next.js data grid uses sticky column headers, consistent row heights, altern
 ### Running both parts
 
 The Python API and Next.js frontend are two separate processes. Keep both terminals running during local development. The frontend calls the JSON endpoints under `/api/`; the backend permits local development origins on ports `3000` and `8000`.
+=======
+# SignalLab
+Brand Intelligence &amp; Audience Analytics Platform
+>>>>>>> a8cc5924fbcea34e45386f7acc7efd26b0cdbdb7
